@@ -9,9 +9,23 @@ const io = socketio(expressServer);
 const Game = require('./Models/Game');
 const QuotableAPI = require('./QuotableAPI');
 
-mongoose.connect('mongodb://127.0.0.1:27017/typeracerTutorial',
+mongoose.connect('mongodb+srv://cam-ron:Biglrip13@cluster0.fmkr8.mongodb.net/<dbname>?retryWrites=true&w=majority',
                 {useNewUrlParser : true, useUnifiedTopology : true},
                 ()=>{ console.log('successfully connected to database')});
+
+// mongoose
+// .connect('mongodb+srv://cam-ron:Biglrip13@cluster0.fmkr8.mongodb.net/<dbname>?retryWrites=true&w=majority', { useUnifiedTopology: true, useNewUrlParser: true })
+
+// .then((result) => {
+
+// console.log("databse is connected");
+
+// })
+// .catch((err) => {
+// console.log(err);
+// });
+
+
 
 io.on('connect',(socket)=>{
 
@@ -44,11 +58,11 @@ io.on('connect',(socket)=>{
                 const gameID = game._id.toString();
                 socket.join(gameID);
                 let player = {
-                    socketID : socket._id,
+                    socketID : socket.id,
                     nickName
                 }
                 game.players.push(player);
-                game.save();
+                game = await game.save();
                 io.to(gameID).emit('updateGame',game);
             }
         }catch(err){
@@ -94,7 +108,7 @@ const startGameClock = async (gameID)=>{
     let timerID = setInterval(function gameIntervalFunc(){
         if(time >= 0){
             const formatTime = calculateTime(time);
-            io.to(gameId).emit('timer',{countDown : formatTime,msg : "Time Remaining"});
+            io.to(gameID).emit('timer',{countDown : formatTime,msg : "Time Remaining"});
             time--;
         }
         else{
