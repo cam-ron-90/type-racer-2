@@ -9,12 +9,12 @@ const io = socketio(expressServer);
 const Game = require('./Models/Game');
 const QuotableAPI = require('./QuotableAPI');
 
-mongoose.connect('mongodb+srv://cam-ron:Biglrip13@cluster0.fmkr8.mongodb.net/<dbname>?retryWrites=true&w=majority',
+mongoose.connect('mongodb+srv://cam-ron:@cluster0.fmkr8.mongodb.net/<dbname>?retryWrites=true&w=majority',
                 {useNewUrlParser : true, useUnifiedTopology : true},
                 ()=>{ console.log('successfully connected to database')});
 
 // mongoose
-// .connect('mongodb+srv://cam-ron:Biglrip13@cluster0.fmkr8.mongodb.net/<dbname>?retryWrites=true&w=majority', { useUnifiedTopology: true, useNewUrlParser: true })
+// .connect('mongodb+srv://cam-ron:@cluster0.fmkr8.mongodb.net/<dbname>?retryWrites=true&w=majority', { useUnifiedTopology: true, useNewUrlParser: true })
 
 // .then((result) => {
 
