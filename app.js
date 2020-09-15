@@ -9,12 +9,12 @@ const io = socketio(expressServer);
 const Game = require('./Models/Game');
 const QuotableAPI = require('./QuotableAPI');
 
-mongoose.connect('mongodb+srv://cam-ron:@cluster0.fmkr8.mongodb.net/<dbname>?retryWrites=true&w=majority',
+mongoose.connect('mongodb+srv://cam-ron:xxxxxxx@cluster0.fmkr8.mongodb.net/<dbname>?retryWrites=true&w=majority',
                 {useNewUrlParser : true, useUnifiedTopology : true},
                 ()=>{ console.log('successfully connected to database')});
 
 // mongoose
-// .connect('mongodb+srv://cam-ron:@cluster0.fmkr8.mongodb.net/<dbname>?retryWrites=true&w=majority', { useUnifiedTopology: true, useNewUrlParser: true })
+// .connect('mongodb+srv://cam-ron:xxxxxxx@cluster0.fmkr8.mongodb.net/<dbname>?retryWrites=true&w=majority', { useUnifiedTopology: true, useNewUrlParser: true })
 
 // .then((result) => {
 
@@ -28,6 +28,49 @@ mongoose.connect('mongodb+srv://cam-ron:@cluster0.fmkr8.mongodb.net/<dbname>?ret
 
 
 io.on('connect',(socket)=>{
+
+    socket.on('userInput', async({userInput,gameID})=>{
+        try{
+            // find the game
+            let game = await Game.findById(gameID);
+            // if game has started and game isn't over
+            if(!game.isOpen && !game.isOver){
+                // get player making the request
+                let player = game.players.find(player=> player.socketID === socket.id);
+                // get current word the user has to type
+                let word = game.words[player.currentWordIndex];
+                // if player typed word correctly
+                if(word === userInput){
+                    // advance player to next word
+                    player.currentWordIndex++;
+                    // if user hasn't finished typing the sentence
+                    if(player.currentWordIndex !== game.words.length){
+                        // save the game
+                        game = await game.save();
+                        // send updated game to all sockets within game
+                        io.to(gameID).emit('updateGame',game);
+                    }
+                    // player is done typing sentence
+                    else{
+                        // get timestamp of when the user finished
+                        let endTime = new Date().getTime();
+                        // get timestamp of when the game started
+                        let {startTime} = game;
+                        // calculate Words Per Minute
+                        player.WPM = calculateWPM(endTime,startTime,player);
+                        // save game
+                        game = await game.save();
+                        // stops timer for that player
+                        socket.emit('done');
+                        // send updated game to all sockets within game
+                        io.to(gameID).emit('updateGame',game);
+                    }
+                }
+            }
+        }catch(err){
+            console.log(err);
+        }
+    });
 
     socket.on('timer', async({gameID,playerID})=>{
         let countDown = 5;
